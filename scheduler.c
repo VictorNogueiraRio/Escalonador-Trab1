@@ -32,12 +32,9 @@ typedef struct roundroubin {
 	char *execName;
 }RoundRobin;
 
-void priorityHandler(float countPar, int i2);
 void scheduler();
-void calcDuration(RealTime r);
 
-
-int currentPid = 0,qtdPriorities = 1,qtdRoundRobin = 0;
+int currentPid = 0;
 float count = 1.0;
 Fila *filaPrioridade,*filaRoundRobin;
 LIS_tppLista listaRT;
@@ -45,9 +42,6 @@ RealTime *r1,*r2;
 Priority *pCorr = NULL;
 RoundRobin *rrCorr = NULL;
 int taExecRT = 0,foiMorto = 0;
-int lastPidPriority = 0,lastPidRR = 0;
-//RealTime r[2];
-
 
 void scheduler() {
     RealTime *aux;
@@ -57,7 +51,6 @@ void scheduler() {
     int tamanhoFP;
     int numCiclosFP;
     int numCiclosFRR;
-    //printf("ta execRT: %d\n",taExecRT);
     obterTamanhoFila(filaPrioridade, &tamanhoFP);
     obterTamanhoFila(filaRoundRobin, &tamanhoFRR);
     IrInicioLista(listaRT);
@@ -88,59 +81,42 @@ void scheduler() {
         } while (LIS_IrProx(listaRT) != LIS_CondRetFimLista);
         if(taExecRT == 0) { /*se nenhum processo real time estiver em execução */
             obterTaExec(filaPrioridade,&taExecFP);
-            //obterTaExec(filaRoundRobin,&taExecFRR);
-            //printf("ta execFRR: %d\n",taExecFRR);
-            //printf("ta execFP: %d\n",taExecFP);
             if(taExecFP == 1) { /* se um processo da fila de prioridades estiver em execução */
                 obterNumCiclos(filaPrioridade, &numCiclosFP);
                 if(numCiclosFP > 0) { /* se o numero de ciclos que a fila ainda vai realizar é maior que zero */
-                    numCiclosFP--;
-                    trocaNumCiclos(filaPrioridade,numCiclosFP);
+                    numCiclosFP--; /* decresce em um numero de ciclos restantes */
+                    trocaNumCiclos(filaPrioridade,numCiclosFP); /* atualiza numero de ciclos */
                     if(pCorr != NULL) {
                         if(pCorr->numCiclos > 1) {
-                            /* se o numero de ciclos restantes do processo que está rodando for maior que zero */
+                            /* se o numero de ciclos restantes do processo que está rodando for maior que um */
                             if (foiMorto == 1) {
-                                //printf("current pid: %d\n",currentPid);
-                                printf("dei kill priorities1\n");
                                 kill(currentPid, SIGCONT);
                                 foiMorto = 0;
                             }
                             pCorr->numCiclos--; /* um ciclo foi consumido */
                         } else { /* se o programa corrente percorreu todos os ciclos que podia */
-                            //printf("pCorr->pid: %d\n",pCorr->pid);
                             kill(pCorr->pid, SIGSTOP);
-                            pCorr->numCiclos = pCorr->priority;
+                            pCorr->numCiclos = pCorr->priority; /* coloca o numero de ciclos que ele executa */
                             FIL_InserirNaFila(filaPrioridade, pCorr); /* o coloca no fim da fila */
                             FIL_ObterValor(filaPrioridade,(void **)&pCorr); /* pega novo processo da fila */
-                            currentPid = pCorr->pid;
-                            //printf("pCorr->pid2: %d\n",pCorr->pid);
-                            printf("dei kill priorities2\n");
-                            kill(pCorr->pid, SIGCONT);
+                            currentPid = pCorr->pid; /* o transforma em processo corrente */
+                            kill(pCorr->pid, SIGCONT); /* o executa */
                         }
                     } else {
                         FIL_ObterValor(filaPrioridade,(void **)&pCorr); /* pega novo processo da fila */
-                        //printf("é aqui\n");
-                        //printf("pCorr->pid3: %d\n",pCorr->pid);
-                        printf("dei kill priorities3\n");
                         kill(pCorr->pid, SIGCONT);
-                        //printf("se pah\n");
                         currentPid = pCorr->pid;
                         pCorr->numCiclos--;
                     }
                     
-                } else { /* se */
-                    //printf("acabou\n");
+                } else { /* se o numero de ciclos tiver se esgotado */
                     if(pCorr != NULL) {
-                        //printf("acabou2\n");
-                        kill(pCorr->pid, SIGSTOP);
-                        //currentPid = 0;
-                        trocaTaExec(filaPrioridade, 0);
-                        trocaNumCiclos(filaPrioridade,10);
-                        trocaTaExec(filaRoundRobin,1);
-                        if(rrCorr && rrCorr->numCiclos > 0) {
-                            printf("dei kill rr em priorities\n");
-
-                            kill(rrCorr->pid, SIGCONT);
+                        kill(pCorr->pid, SIGSTOP); /* para o processo de prioridades rodando */
+                        trocaTaExec(filaPrioridade, 0); /* faz com que a fila de prioridades fique inativa */
+                        trocaNumCiclos(filaPrioridade,10); /* reinicializa o numero de ciclos */
+                        trocaTaExec(filaRoundRobin,1); /* ativa a fila de processos round robin */
+                        if(rrCorr && rrCorr->numCiclos > 0) { /* se algum processo round robin estava executando anteriormente */
+                            kill(rrCorr->pid, SIGCONT); /* volte a executar ele */
                         }
                     }
                 }
@@ -149,41 +125,38 @@ void scheduler() {
                 if(taExecFRR == 1) { /* se um processo da fila de roundRobin estiver em execução */
                     obterNumCiclos(filaRoundRobin, &numCiclosFRR);
                     if(numCiclosFRR > 0) { /* se o numero de ciclos que a fila ainda vai realizar é maior que zero */
-                        //printf("numCiclosFRR: %d\n",numCiclosFRR);
                         if (foiMorto == 1) {
-                            //printf("current pid: %d\n",currentPid);
                             kill(currentPid, SIGCONT);
                             foiMorto = 0;
                         }
                         numCiclosFRR--;
                         trocaNumCiclos(filaRoundRobin,numCiclosFRR);
-                        if(rrCorr != NULL) {
-                            if(rrCorr->numCiclos > 1) { /* se o numero de ciclos restantes do processo que está rodando for maior que zero */
+                        if(rrCorr != NULL) { /* se há algum processo da fila de round robin executando */
+                            if(rrCorr->numCiclos > 1) { /* se o numero de ciclos restantes do processo que está rodando for maior que um */
                                 rrCorr->numCiclos--; /* um ciclo foi consumido */
                             } else { /* se o programa corrente percorreu todos os ciclos que podia */
-                                kill(rrCorr->pid, SIGSTOP);
-                                rrCorr->numCiclos = 1;
+                                kill(rrCorr->pid, SIGSTOP); /* para o programa corrente */
+                                rrCorr->numCiclos = 1; /* coloca o numero de ciclos total */
                                 FIL_InserirNaFila(filaRoundRobin, rrCorr); /* o coloca no fim da fila */
                                 FIL_ObterValor(filaRoundRobin,(void **)&rrCorr); /* pega novo processo da fila */
-                                currentPid = rrCorr->pid;
-                                kill(rrCorr->pid, SIGCONT);
+                                currentPid = rrCorr->pid; /* o transforma em processo corrente */
+                                kill(rrCorr->pid, SIGCONT); /* o executa */
                             }
-                        } else {
+                        } else { /* se não há */
                             FIL_ObterValor(filaRoundRobin,(void **)&rrCorr); /* pega novo processo da fila */
-                            kill(rrCorr->pid, SIGCONT);
-                            currentPid = rrCorr->pid;
-                            rrCorr->numCiclos--;
+                            kill(rrCorr->pid, SIGCONT); /* o executa */
+                            currentPid = rrCorr->pid; /* o transforma em corrente */
+                            rrCorr->numCiclos--; /* indica que um ciclo foi consumido */
                         }
                         
-                    } else { /* se */
-                        ////printf("finally2\n");
+                    } else { /* se o numero de ciclos tiver se esgotado*/
                         if(rrCorr != NULL) {
-                            kill(rrCorr->pid, SIGSTOP);
-                            trocaTaExec(filaRoundRobin, 0);
-                            trocaNumCiclos(filaRoundRobin,8);
-                            trocaTaExec(filaPrioridade,1);
-                            if(pCorr && pCorr->numCiclos > 0) {
-                                kill(pCorr->pid, SIGCONT);
+                            kill(rrCorr->pid, SIGSTOP); /* para o processo round robin rodando */
+                            trocaTaExec(filaRoundRobin, 0); /* faz com que a fila de round robin fique inativa */
+                            trocaNumCiclos(filaRoundRobin,8); /* reinicializa o numero de ciclos */
+                            trocaTaExec(filaPrioridade,1); /* ativa a fila de processos de proridade */
+                            if(pCorr && pCorr->numCiclos > 0) { /* se algum processo round robin estava executando anteriormente */
+                                kill(pCorr->pid, SIGCONT); /* volte a executar ele */
                             }
                         }
                     }
@@ -192,19 +165,11 @@ void scheduler() {
     }
 
 
-void priorityHandler(float countPar, int i2) {
-    /*
-    if(i2 < qtdPriorities) {
-        p[i2 + 1].startTime = countPar + (p[i].priority - (count - p[i].startTime));
-    }
-     */
-}
-
 void catchAlarm(int signal) {
         printf("entrei aqui %f e %d\n",count,currentPid);
 	scheduler();
-	if(count == 59) {	
-		count = 0;
+	if(count == 60) {
+		count = 0.5;
 	}
 	count += 0.5;
 }
