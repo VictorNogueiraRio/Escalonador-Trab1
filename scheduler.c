@@ -1,0 +1,310 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include "Fila.h"
+#include "Lista.h"
+
+
+void destruirValor(void *pValor);
+
+typedef struct realTime {
+	int pid;
+	float startTime;
+	float EndTime;
+    float duration;
+	char *execName;
+}RealTime;
+
+typedef struct priority {
+	int pid;
+	int priority;
+    int numCiclos;
+	char *execName;
+}Priority;
+
+typedef struct roundroubin {
+	int pid;
+    int numCiclos;
+	char *execName;
+}RoundRobin;
+
+void priorityHandler(float countPar, int i2);
+void scheduler();
+void calcDuration(RealTime r);
+
+
+int currentPid = 0,qtdPriorities = 1,qtdRoundRobin = 0;
+float count = 1.0;
+Fila *filaPrioridade,*filaRoundRobin;
+LIS_tppLista listaRT;
+RealTime *r1,*r2;
+Priority *pCorr = NULL;
+RoundRobin *rrCorr = NULL;
+int taExecRT = 0,foiMorto = 0;
+int lastPidPriority = 0,lastPidRR = 0;
+//RealTime r[2];
+
+
+void scheduler() {
+    RealTime *aux;
+    int taExecFP;
+    int taExecFRR;
+    int tamanhoFRR;
+    int tamanhoFP;
+    int numCiclosFP;
+    int numCiclosFRR;
+    //printf("ta execRT: %d\n",taExecRT);
+    obterTamanhoFila(filaPrioridade, &tamanhoFP);
+    obterTamanhoFila(filaRoundRobin, &tamanhoFRR);
+    IrInicioLista(listaRT);
+        do {
+            
+            LIS_ObterNo(listaRT, (void **)&aux);
+            if(aux == NULL) {
+                break;
+            }
+            LIS_ObterNo(listaRT, (void **)&aux);
+            if(count == aux->startTime) { /* começa o real time */
+                //priorityHandler(aux->EndTime,0);
+                taExecRT = 1;
+                if(currentPid) { /* se houver algum processo não real time executando */
+                    kill(currentPid,SIGSTOP); /* mata o processo */
+                    //printf("quando matou %d\n",currentPid);
+                }
+                kill(aux->pid,SIGCONT);
+            } else if(count == aux->EndTime) { /* termina o real time */
+                //printf("pid do process:%d e %d\n",getpid(),aux->pid);
+                if(currentPid) {
+                    foiMorto = 1;
+                }
+                taExecRT = 0;
+                kill(aux->pid,SIGSTOP);
+            }
+
+        } while (LIS_IrProx(listaRT) != LIS_CondRetFimLista);
+        if(taExecRT == 0) { /*se nenhum processo real time estiver em execução */
+            obterTaExec(filaPrioridade,&taExecFP);
+            //obterTaExec(filaRoundRobin,&taExecFRR);
+            //printf("ta execFRR: %d\n",taExecFRR);
+            //printf("ta execFP: %d\n",taExecFP);
+            if(taExecFP == 1) { /* se um processo da fila de prioridades estiver em execução */
+                obterNumCiclos(filaPrioridade, &numCiclosFP);
+                if(numCiclosFP > 0) { /* se o numero de ciclos que a fila ainda vai realizar é maior que zero */
+                    numCiclosFP--;
+                    trocaNumCiclos(filaPrioridade,numCiclosFP);
+                    if(pCorr != NULL) {
+                        if(pCorr->numCiclos > 1) {
+                            /* se o numero de ciclos restantes do processo que está rodando for maior que zero */
+                            if (foiMorto == 1) {
+                                //printf("current pid: %d\n",currentPid);
+                                printf("dei kill priorities1\n");
+                                kill(currentPid, SIGCONT);
+                                foiMorto = 0;
+                            }
+                            pCorr->numCiclos--; /* um ciclo foi consumido */
+                        } else { /* se o programa corrente percorreu todos os ciclos que podia */
+                            //printf("pCorr->pid: %d\n",pCorr->pid);
+                            kill(pCorr->pid, SIGSTOP);
+                            pCorr->numCiclos = pCorr->priority;
+                            FIL_InserirNaFila(filaPrioridade, pCorr); /* o coloca no fim da fila */
+                            FIL_ObterValor(filaPrioridade,(void **)&pCorr); /* pega novo processo da fila */
+                            currentPid = pCorr->pid;
+                            //printf("pCorr->pid2: %d\n",pCorr->pid);
+                            printf("dei kill priorities2\n");
+                            kill(pCorr->pid, SIGCONT);
+                        }
+                    } else {
+                        FIL_ObterValor(filaPrioridade,(void **)&pCorr); /* pega novo processo da fila */
+                        //printf("é aqui\n");
+                        //printf("pCorr->pid3: %d\n",pCorr->pid);
+                        printf("dei kill priorities3\n");
+                        kill(pCorr->pid, SIGCONT);
+                        //printf("se pah\n");
+                        currentPid = pCorr->pid;
+                        pCorr->numCiclos--;
+                    }
+                    
+                } else { /* se */
+                    //printf("acabou\n");
+                    if(pCorr != NULL) {
+                        //printf("acabou2\n");
+                        kill(pCorr->pid, SIGSTOP);
+                        //currentPid = 0;
+                        trocaTaExec(filaPrioridade, 0);
+                        trocaNumCiclos(filaPrioridade,10);
+                        trocaTaExec(filaRoundRobin,1);
+                        if(rrCorr && rrCorr->numCiclos > 0) {
+                            printf("dei kill rr em priorities\n");
+
+                            kill(rrCorr->pid, SIGCONT);
+                        }
+                    }
+                }
+            }
+                obterTaExec(filaRoundRobin,&taExecFRR);
+                if(taExecFRR == 1) { /* se um processo da fila de roundRobin estiver em execução */
+                    obterNumCiclos(filaRoundRobin, &numCiclosFRR);
+                    if(numCiclosFRR > 0) { /* se o numero de ciclos que a fila ainda vai realizar é maior que zero */
+                        //printf("numCiclosFRR: %d\n",numCiclosFRR);
+                        if (foiMorto == 1) {
+                            //printf("current pid: %d\n",currentPid);
+                            kill(currentPid, SIGCONT);
+                            foiMorto = 0;
+                        }
+                        numCiclosFRR--;
+                        trocaNumCiclos(filaRoundRobin,numCiclosFRR);
+                        if(rrCorr != NULL) {
+                            if(rrCorr->numCiclos > 1) { /* se o numero de ciclos restantes do processo que está rodando for maior que zero */
+                                rrCorr->numCiclos--; /* um ciclo foi consumido */
+                            } else { /* se o programa corrente percorreu todos os ciclos que podia */
+                                kill(rrCorr->pid, SIGSTOP);
+                                rrCorr->numCiclos = 1;
+                                FIL_InserirNaFila(filaRoundRobin, rrCorr); /* o coloca no fim da fila */
+                                FIL_ObterValor(filaRoundRobin,(void **)&rrCorr); /* pega novo processo da fila */
+                                currentPid = rrCorr->pid;
+                                kill(rrCorr->pid, SIGCONT);
+                            }
+                        } else {
+                            FIL_ObterValor(filaRoundRobin,(void **)&rrCorr); /* pega novo processo da fila */
+                            kill(rrCorr->pid, SIGCONT);
+                            currentPid = rrCorr->pid;
+                            rrCorr->numCiclos--;
+                        }
+                        
+                    } else { /* se */
+                        ////printf("finally2\n");
+                        if(rrCorr != NULL) {
+                            kill(rrCorr->pid, SIGSTOP);
+                            trocaTaExec(filaRoundRobin, 0);
+                            trocaNumCiclos(filaRoundRobin,8);
+                            trocaTaExec(filaPrioridade,1);
+                            if(pCorr && pCorr->numCiclos > 0) {
+                                kill(pCorr->pid, SIGCONT);
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+
+void priorityHandler(float countPar, int i2) {
+    /*
+    if(i2 < qtdPriorities) {
+        p[i2 + 1].startTime = countPar + (p[i].priority - (count - p[i].startTime));
+    }
+     */
+}
+
+void catchAlarm(int signal) {
+        printf("entrei aqui %f e %d\n",count,currentPid);
+	scheduler();
+	if(count == 59) {	
+		count = 0;
+	}
+	count += 0.5;
+}
+
+void calcDuration(RealTime r) {
+    r.duration = r.EndTime - r.startTime;
+}
+
+void forkar(int *pid1, char *execName) {
+    int pid;
+    char *const args[] = {execName,0};
+	if ((pid = fork()) == 0) {
+                raise(SIGSTOP);
+                execv(args[0],args);
+    } else {
+		*pid1 = pid;
+    }
+
+}
+
+
+
+int main() {
+	signal(SIGALRM, catchAlarm);
+    Priority *p23;
+    char l[] = "l";
+
+	/*
+    int fifo;
+	if((fifo = open("minhaFifo2", O_RDONLY)) < 0) {
+		puts("foi porra\n");
+		return -1;
+	}
+    */
+
+    r1 = (RealTime *) malloc(sizeof(RealTime));
+    r1->startTime = 1;
+    r1->EndTime = 6;
+    r1->execName = "./prog1";
+    r2 = (RealTime *) malloc(sizeof(RealTime));
+    r2->startTime = 10;
+    r2->EndTime = 13;
+    r2->execName = "./prog2";
+    
+    /* Cria Lista */
+    LIS_CriarLista(&listaRT,l,destruirValor);
+    //printf("end r1 antes: %d\n",r1);
+    LIS_InserirNo(listaRT, (void *)r1);
+    LIS_InserirNo(listaRT, (void *)r2);
+    /* Cria filas */
+    FIL_CriaFila(&filaPrioridade,1,10);
+    FIL_CriaFila(&filaRoundRobin,0,8);
+    
+    RoundRobin *rr = (RoundRobin *) malloc(sizeof(RoundRobin));
+    rr->numCiclos = 1;
+    rr->execName = "./prog5";
+    
+    RoundRobin *rr2 = (RoundRobin *) malloc(sizeof(RoundRobin));
+    rr2->numCiclos = 1;
+    rr2->execName = "./prog6";
+    
+    RoundRobin *rr3 = (RoundRobin *) malloc(sizeof(RoundRobin));
+    rr3->numCiclos = 1;
+    rr3->execName = "./prog7";
+    
+    FIL_InserirNaFila(filaRoundRobin, (void *)rr);
+    FIL_InserirNaFila(filaRoundRobin, (void *)rr2);
+    FIL_InserirNaFila(filaRoundRobin, (void *)rr3);
+    
+    /* Cria prioridades */
+    Priority *p = (Priority *) malloc(sizeof(Priority));
+    if(p == NULL) {
+        //printf("ruim brabo\n");
+        exit(-1);
+    }
+    p->priority = 7;
+    p->execName = "./prog3";
+    p->numCiclos = 7;
+    FIL_InserirNaFila(filaPrioridade, (void *)p);
+    p23 = (Priority *) malloc(sizeof(Priority));
+    p23->priority = 2;
+    p23->execName = "./prog4";
+    p23->numCiclos = 2;
+    FIL_InserirNaFila(filaPrioridade, (void *)p23);
+    ualarm(500000,500000);
+	forkar(&(r1->pid),r1->execName);
+	forkar(&(r2->pid),r2->execName);
+	forkar(&(p->pid),p->execName);
+    forkar(&(p23->pid),p23->execName);
+    forkar(&(rr->pid), rr->execName);
+    forkar(&(rr2->pid), rr2->execName);
+    forkar(&(rr3->pid), rr3->execName);
+    //printf("rr pid: %d\n",rr->pid);
+
+	while(1);
+	return 0;
+}
+
+
+void destruirValor(void *pValor) {
+    free(pValor);
+    
+}
