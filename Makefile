@@ -1,5 +1,6 @@
 all: criadorFifo scheduler interpretador prog1 prog2 prog3 prog4 prog5 prog6 prog7 prog8 prog9 stols
-
+clean: 
+	@rm -f criadorFifo scheduler interpretador prog1 prog2 prog3 prog4 prog5 prog6 prog7 prog8 prog9 stols
 
 criadorFifo: criadorFifo.c
 	gcc -Wall -o criadorFifo criadorFifo.c
