@@ -1,12 +1,10 @@
-Exec P1
-Exec P2 PR=3
-Exec P3 I=20 D=10
-Exec P4
-Exec P5 PR=2
-Exec P6 I=2 D=1
-Exec P7
-Exec P8 PR=5
-Exec P9 I=20 D=1
-Exec P10
-Exec P11 PR=1
-Exec P12 I=2 D=10
+Exec prog1
+Exec prog2 PR=3
+Exec prog3 I=20 D=10
+Exec prog4
+Exec prog5 PR=2
+Exec prog6 I=2 D=1
+Exec prog7
+Exec prog8 PR=5
+Exec prog9 I=20 D=1
+Exec stols PR=1

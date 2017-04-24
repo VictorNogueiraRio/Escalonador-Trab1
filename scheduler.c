@@ -65,6 +65,9 @@ int verificaRTValido(int startTime, int EndTime) {
         if(aux == NULL) {
             break;
         }
+        if(EndTime > 60) {
+            return 0;
+        }
         if(startTime >= aux->startTime && startTime < aux->EndTime) {
             return 0;
         }
@@ -126,7 +129,7 @@ void queueHandler(int *currentPidPar, Fila **fila, int *foiMortoPar, Priority **
                     if(pProx  != NULL/*&& pProx->numCiclos > 0 */) { /* se algum processo round robin estava executando anteriormente */
                         trocaNumCiclos(filaProx, devolveNumFila(filaProx) * 2 + 10);
                         //*currentPidPar = pProx->pid;
-                        //kill(pProx->pid, SIGCONT); /* volte a executar ele */
+                        //kill(pProx->pid, SIGCONT);/ * volte a executar ele */
                     }
                 }
             }
