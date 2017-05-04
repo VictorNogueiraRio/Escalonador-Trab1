@@ -38,7 +38,7 @@ typedef struct roundroubin {
 
 
 union semaun{
-    
+
     int val;
     struct semid_ds *buf;
     unsigned short *array;
@@ -156,7 +156,7 @@ void queueHandler(int *currentPidPar, Fila **fila, int *foiMortoPar, Priority **
                 }
             }
         }
-        
+
     } else { /* se o numero de ciclos tiver se esgotado */
         if((*corr) != NULL) {
             if(*currentPidPar != (*corr)->pid && *currentPidPar != 0) {
@@ -204,7 +204,7 @@ void scheduler() {
 
         } while (LIS_IrProx(listaRT) != LIS_CondRetFimLista);
         if(taExecRT == 0) { /*se nenhum processo real time estiver em execução */
-            
+
             obterTaExec(filaRoundRobin,&taExecFRR);
             obterTaExec(filaPrioridade,&taExecFP);
             if(taExecFP == 1) { /* se um processo da fila de prioridades 1 estiver em execução */
@@ -215,10 +215,10 @@ void scheduler() {
                 }
             }
 
-            
+
             obterTaExec(filaPrioridade,&taExecFP);
             obterTaExec(filaPrioridade2,&taExecFP2);
-            
+
             if(taExecFP2 == 1) { /* se um processo da fila de prioridades 2 estiver em execução */
                 if(taExecFP == 0 && taExecFP3 == 0 && taExecFP4 == 0 && taExecFP5 == 0 && taExecFP6 == 0 && taExecFP7 == 0 && taExecFRR == 0) {
                     queueHandler(&currentPid, &filaPrioridade2,&foiMorto, &pCorr2,1, filaPrioridade3, pCorr3);
@@ -226,7 +226,7 @@ void scheduler() {
                     queueHandler(&currentPid, &filaPrioridade2,&foiMorto, &pCorr2,0, filaPrioridade3, pCorr3);
                 }
             }
-            
+
             obterTaExec(filaPrioridade2,&taExecFP2);
             obterTaExec(filaPrioridade3,&taExecFP3);
             if(taExecFP3 == 1) { /* se um processo da fila de prioridades 3 estiver em execução */
@@ -235,9 +235,9 @@ void scheduler() {
                 } else {
                     queueHandler(&currentPid, &filaPrioridade3,&foiMorto, &pCorr3,0, filaPrioridade4, pCorr4);
                 }
-                
+
             }
-            
+
             obterTaExec(filaPrioridade3,&taExecFP3);
             obterTaExec(filaPrioridade4,&taExecFP4);
             if(taExecFP4 == 1) { /* se um processo da fila de prioridades 4 estiver em execução */
@@ -246,10 +246,10 @@ void scheduler() {
                 } else {
                     queueHandler(&currentPid, &filaPrioridade4,&foiMorto, &pCorr4,0, filaPrioridade5, pCorr5);
                 }
-                
+
             }
-            
-            
+
+
             obterTaExec(filaPrioridade5,&taExecFP5);
             obterTaExec(filaPrioridade4,&taExecFP4);
             if(taExecFP5 == 1) { /* se um processo da fila de prioridades 5 estiver em execução */
@@ -258,9 +258,9 @@ void scheduler() {
                 } else {
                     queueHandler(&currentPid, &filaPrioridade5,&foiMorto, &pCorr5,0, filaPrioridade6, pCorr6);
                 }
-                
+
             }
-            
+
             obterTaExec(filaPrioridade5,&taExecFP5);
             obterTaExec(filaPrioridade6,&taExecFP6);
             if(taExecFP6 == 1) { /* se um processo da fila de prioridades 6 estiver em execução */
@@ -269,9 +269,9 @@ void scheduler() {
                 } else {
                     queueHandler(&currentPid, &filaPrioridade6,&foiMorto, &pCorr6,0, filaPrioridade7, pCorr7);
                 }
-                
+
             }
-            
+
             obterTaExec(filaPrioridade6,&taExecFP6);
             obterTaExec(filaPrioridade7,&taExecFP7);
             if(taExecFP7 == 1) { /* se um processo da fila de prioridades 7 estiver em execução */
@@ -280,11 +280,11 @@ void scheduler() {
                 } else {
                     queueHandler(&currentPid, &filaPrioridade7,&foiMorto, &pCorr7,0, filaRoundRobin, rrCorr);
                 }
-                
+
             }
-            
+
             ////printf("taExecFP5: %d e taExecFP7: %d\n",taExecFP5,taExecFP7);
-            
+
                 obterTaExec(filaPrioridade,&taExecFP);
                 obterTaExec(filaRoundRobin,&taExecFRR);
                 if(taExecFRR == 1) { /* se um processo da fila de roundRobin estiver em execução */
@@ -332,7 +332,7 @@ void scheduler() {
                                 }
                             }
                         }
-                        
+
                     } else { /* se o numero de ciclos tiver se esgotado*/
                         if(rrCorr != NULL) {
                             ////printf("rrcorr: %d e curr: %d\n",rrCorr->pid,currentPid);
@@ -365,6 +365,8 @@ void catchAlarm(int signal) {
     FILE *entrada = fopen("entrada.txt","rw");
     FILE *saida = fopen("saida.txt","rw");
     fprintf(saida,"entrei aqui %f e %d\n",count,currentPid);
+	fclose(entrada);
+	fclose(saida);
     scheduler();
 	if(count == 59.5) {
 		count = 0.5;
@@ -491,7 +493,7 @@ void forkar(int *pid1, char *execName) {
             kill(pid, SIGSTOP);
          }
          semaforoV(semId);
-        
+
          *pid1 = pid;
     }
 
@@ -504,7 +506,7 @@ int main() {
     char l[] = "l";
     char priority,startTime,EndTime,tipo,tamanhoChar[3];
     int startTimeI,EndTimeI,priorityI,fifo,tamanhoInt;
-    
+
     int fd1,fd2;
     segmento = shmget(1234, sizeof(int), IPC_CREAT | S_IRUSR | S_IWUSR);
     semId = semget(1234, 1, IPC_CREAT);
@@ -518,22 +520,22 @@ int main() {
         puts("erro ao abrir saida.txt");
         exit(-1);
     }
-    
+
     if((fifo = open("minhaFifo2", O_RDONLY)) < 0) {
         puts("Erro ao abrir a FIFO2 escrita\n");
         return -1;
     }
-    
+
     /*
     close(0);
     dup(fd1);
     close(1);
     dup(fd2);
      */
-    
+
     /* Cria Lista */
     LIS_CriarLista(&listaRT,l,destruirValor);
-    
+
     /* Cria filas */
     FIL_CriaFila(&filaPrioridade,0,24);
     FIL_CriaFila(&filaPrioridade2,0,22);
@@ -544,7 +546,7 @@ int main() {
     FIL_CriaFila(&filaPrioridade7,0,12);
     FIL_CriaFila(&filaRoundRobin,1,10);
     filaEmExecucao = 0;
-    
+
     ualarm(500000,500000);
     /* Inicializa booleano que diz se uma fila está sendo executada */
     obterTaExec(filaPrioridade,&taExecFP);
@@ -601,26 +603,26 @@ int main() {
                     break;
             }
         }
-        
+
     }
 	return 0;
 }
 
 int setSemValue(int semId){
-    
+
     union semaun semUnion;
     semUnion.val = 1;
     return semctl(semId, 0, SETVAL, semUnion);
 }
 
 void delSemValue(int semId){
-    
+
     union semaun semUnion;
     semctl(semId, 0, IPC_RMID, semUnion);
 }
 
 int semaforoP(int semId){
-    
+
     struct sembuf semB;
     semB.sem_num = 0;
     semB.sem_op = -1;
@@ -630,7 +632,7 @@ int semaforoP(int semId){
 }
 
 int semaforoV(int semId){
-    
+
     struct sembuf semB;
     semB.sem_num = 0;
     semB.sem_op = 1;
@@ -642,5 +644,5 @@ int semaforoV(int semId){
 
 void destruirValor(void *pValor) {
     free(pValor);
-    
+
 }

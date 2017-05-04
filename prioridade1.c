@@ -14,8 +14,9 @@ int main() {
 
 		entrada = fopen("entrada.txt", "r");
 		saida = fopen("saida.txt", "a");
-		fscanf(entrada, "%s", string);
-        fprintf(saida, "p1 - %s", string);
+		//fscanf(entrada, "%s", string);
+
+        fprintf(saida, "p1\n");
 		fclose(entrada);
 		fclose(saida);
 		usleep(500000);
