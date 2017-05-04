@@ -6,9 +6,14 @@
 #include <fcntl.h>
 
 int main() {
+
+	FILE *entrada = fopen("entrada.txt", "r");
+	FILE *saida = fopen("saida.txt", "a");
+
 	while(1) {
 		char prog1[] = "prog1\n";
-         	write(1,prog1,sizeof(prog1) + 1);
-            	usleep(500000);
-       	}
+		fprintf(saida, prog1);
+    	usleep(500000);
+
+    }
 }

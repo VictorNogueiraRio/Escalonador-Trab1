@@ -6,9 +6,13 @@
 #include <fcntl.h>
 
 int main() {
-        while(1) {
-                printf("prio1\n");
-		usleep(500000);
-        }
-}
+	char string[10];
+	FILE *entrada = fopen("entrada.txt", "r");
+	FILE *saida = fopen("saida.txt", "a");
 
+    while(1) {
+		fscanf(entrada, "%s", string);
+        fprintf(saida, "p1 - %s", string);
+		usleep(500000);
+    }
+}

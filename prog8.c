@@ -2,9 +2,15 @@
 #include <unistd.h>
 
 int main() {
+
+	FILE *entrada = fopen("entrada.txt", "r");
+	FILE *saida = fopen("saida.txt", "a");
+
     while(1) {
-        printf("prog8\n");
+
+        fprintf(saida, "prog8\n");
         usleep(500000);
     }
+	
     return 0;
 }

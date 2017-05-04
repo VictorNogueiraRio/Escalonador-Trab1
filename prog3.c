@@ -3,8 +3,14 @@
 
 
 int main() {
-        while(1) {
-                printf("prog3\n");
-                usleep(500000);
-        }       
+
+	FILE *entrada = fopen("entrada.txt", "r");
+	FILE *saida = fopen("saida.txt", "a");
+
+    while(1) {
+
+        fprintf(saida, "prog3\n");
+        usleep(500000);
+
+    }
 }

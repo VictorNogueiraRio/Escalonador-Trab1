@@ -2,11 +2,15 @@
 #include <unistd.h>
 
 int main() {
+
+	FILE *entrada = fopen("entrada.txt", "r");
+	FILE *saida = fopen("saida.txt", "a");
+
 	while(1) {
-		printf("prog7\n");
+
+		fprintf(saida, "prog7\n");
 		usleep(500000);
 	}
+	
 	return 0;
 }
-
-
