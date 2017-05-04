@@ -15,8 +15,8 @@ void intToChar(int target,char **converted);
 
 int main(){
 
-	char nome[15], arg1[15], arg2[15], numero[4];
-	int num1, num2, n,fifo;
+	char nome[30], arg1[15], arg2[15], numero[4];
+	int num1, num2, n,fifo,tamanhoInt;
 	FILE * exec;
     
     if ((fifo = open("minhaFifo2", OPENMODE)) < 0) {
@@ -28,35 +28,38 @@ int main(){
 
 	fscanf(exec, "%s", nome);
 
-	while (1){
-
-		n = fscanf(exec, "%s %s", &(nome[3]), arg1);
-        nome[1] = '.';
-        nome[2] = '/';
+	while (1) {
+        printf("entrou no loop\n");
+		n = fscanf(exec, "%s %s", &(nome[5]), arg1);
+        char *tamanhoChar = (char *) malloc(sizeof(char) * 3);
+        tamanhoInt = strlen(&nome[5]);
+        intToChar(tamanhoInt,&tamanhoChar);
+        nome[1] = tamanhoChar[0];
+        nome[2] = tamanhoChar[1];
+        nome[3] = '.';
+        nome[4] = '/';
 		if (n==1){
 			printf("%s - ultimo roundrobin\n", nome);
             sleep(1);
 			break;
 		}
-            
 		else if (arg1[0]=='E'){
             nome[0] = 'r';
-            nome[8] = 0;
-            write(fifo,nome,9);
-			executarRoundRobin();
-			sleep(1);
+            nome[tamanhoInt + 5] = 0;
+            
+            write(fifo,nome,tamanhoInt + 6);
+            printf("round robin\n");
+            sleep(1);
 		}
 
 		else if (arg1[0]=='P'){
             nome[0] = 'p';
 			//printf("%s - prioridade\n", nome);
-
-			numero[0]=arg1[3];
-			numero[1]='\0';
-            nome[8] = arg1[3];
-            nome[9] = 0;
-            write(fifo,nome,10);
-			num1=atof(numero);
+            printf("tamanhoInt: %d\n",tamanhoInt);
+            nome[tamanhoInt + 5] = arg1[3];
+            nome[tamanhoInt + 6] = 0;
+            printf("nome exec: %s\n",nome);
+            write(fifo,nome,tamanhoInt + 7);
 			sleep(1);
 
 			if (fscanf(exec, "%s", nome)!=1){
@@ -72,11 +75,16 @@ int main(){
 			numero[0]=arg1[2];
 			numero[1]=arg1[3];
 			num1=atof(numero);
-            char *ini = (char *) malloc(3);
-            intToChar(num1,&ini);
-            nome[8] = ini[0];
-            nome[9] = ini[1];
-			
+            printf("st1 no int: %c\nst2 no int: %c\n",arg1[2],arg1[3]);
+            if(arg1[3] == 0) {
+                
+                nome[tamanhoInt + 5] = arg1[3] + 48;
+                nome[tamanhoInt + 6] = arg1[2];
+            } else {
+                nome[tamanhoInt + 5] = arg1[2];
+                nome[tamanhoInt + 6] = arg1[3];
+            }
+			printf("st1 dps no int: %c\nst2 no int: %c\n",nome[tamanhoInt + 5],nome[tamanhoInt + 6]);
             fscanf(exec, "%s", arg2);
 
 			numero[0]=arg2[2];
@@ -88,11 +96,11 @@ int main(){
             
             num2 += num1;
             intToChar(num2,&fim);
-            nome[10] = fim[0];
-            nome[11] = fim[1];
-            nome[12] = 0;
-            write(fifo,nome,13);
-            //printf("nome: %s\n",nome);
+            nome[tamanhoInt + 7] = fim[0];
+            nome[tamanhoInt + 8] = fim[1];
+            nome[tamanhoInt + 9] = 0;
+            write(fifo,nome,tamanhoInt + 9);
+            printf("real time: %s\n",nome);
 
 			sleep(1);
 
@@ -100,14 +108,13 @@ int main(){
 
 				break;
 			}
+            free(fim);
 		}
+        free(tamanhoChar);
+        
 	}
-
-	return 0;
-}
-
-void executarRoundRobin(){
-
+    
+    	return 0;
 }
 
 void intToChar(int target,char **converted) {
@@ -123,14 +130,4 @@ void intToChar(int target,char **converted) {
     }
     (*converted)[i] = target + 48;
     (*converted)[i + 1] = 0;
-}
-
-void executarPrioridade(int pri){
-
-	printf("pri: %d\n", pri);
-}
-
-void executarRealTime(int seg, int dur){
-
-	printf("com: %d, fim: %d\n", seg, dur);
 }

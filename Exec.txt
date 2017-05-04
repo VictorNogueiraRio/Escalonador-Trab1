@@ -8,3 +8,4 @@ Exec prog7
 Exec prog8 PR=5
 Exec prog9 I=20 D=1
 Exec stols PR=1
+Exec prioridade1 PR=1

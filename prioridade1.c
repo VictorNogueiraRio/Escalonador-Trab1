@@ -6,9 +6,9 @@
 #include <fcntl.h>
 
 int main() {
-	while(1) {
-		char prog1[] = "prog1\n";
-         	write(1,prog1,sizeof(prog1) + 1);
-            	usleep(500000);
-       	}
+        while(1) {
+                printf("prio1\n");
+		usleep(500000);
+        }
 }
+

@@ -1,9 +1,10 @@
-all: criadorFifo scheduler interpretador prog1 prog2 prog3 prog4 prog5 prog6 prog7 prog8 prog9 stols
+all: criadorFifo scheduler interpretador prog1 prog2 prog3 prog4 prog5 prog6 prog7 prog8 prog9 stols prioridade1
 clean: 
-	@rm -f criadorFifo scheduler interpretador prog1 prog2 prog3 prog4 prog5 prog6 prog7 prog8 prog9 stols
+	@rm -f criadorFifo scheduler interpretador prog1 prog2 prog3 prog4 prog5 prog6 prog7 prog8 prog9 stols minhaFifo minhaFifo2 minhaFifo3 prioridade1
 
 criadorFifo: criadorFifo.c
 	gcc -Wall -o criadorFifo criadorFifo.c
+	./criadorFifo
 scheduler: scheduler.c Lista.c Fila.c
 	gcc -Wall -o scheduler scheduler.c Lista.c Fila.c
 interpretador: interpretador.c
@@ -28,3 +29,5 @@ prog9: prog9.c
 	gcc -Wall -o prog9 prog9.c 
 stols: stols.c
 	gcc -Wall -o stols stols.c
+prioridade1: prioridade1.c
+	gcc -Wall -o prioridade1 prioridade1.c
