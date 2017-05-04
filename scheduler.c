@@ -167,7 +167,7 @@ void queueHandler(int *currentPidPar, Fila **fila, int *foiMortoPar, Priority **
             trocaNumCiclos(*fila,devolveNumFila(*fila) * 2 + 10); /* reinicializa o numero de ciclos */
             trocaTaExec(filaProx,1); /* ativa a próxima fila de processos a ser executada */
             if(pProx != NULL) { /* se a próxima fila a ser executada tiver um processo que foi parado */
-                //printf("entrei no if que devia\n");
+                ////printf("entrei no if que devia\n");
                 //*currentPidPar = pProx->pid;
                 trocaNumCiclos(filaProx,devolveNumFila(filaProx) * 2 + 10);
             }
@@ -188,7 +188,7 @@ void scheduler() {
                 break;
             }
             if(count == aux->startTime) { /* começa o real time */
-                printf("vou executar o real time\n");
+                //printf("vou executar o real time\n");
                 taExecRT = 1;
                 if(currentPid) { /* se houver algum processo não real time executando */
                     kill(currentPid,SIGSTOP); /* mata o processo */
@@ -283,14 +283,14 @@ void scheduler() {
                 
             }
             
-            //printf("taExecFP5: %d e taExecFP7: %d\n",taExecFP5,taExecFP7);
+            ////printf("taExecFP5: %d e taExecFP7: %d\n",taExecFP5,taExecFP7);
             
                 obterTaExec(filaPrioridade,&taExecFP);
                 obterTaExec(filaRoundRobin,&taExecFRR);
                 if(taExecFRR == 1) { /* se um processo da fila de roundRobin estiver em execução */
-                    //printf("taExecFP: %d\n",taExecFP);
+                    ////printf("taExecFP: %d\n",taExecFP);
                     obterNumCiclos(filaRoundRobin, &numCiclosFRR);
-                    //printf("entrou no rr: %d\n",numCiclosFRR);
+                    ////printf("entrou no rr: %d\n",numCiclosFRR);
                     if(numCiclosFRR > 0 || (pCorr == NULL && pCorr2 == NULL && pCorr3 == NULL && pCorr4 == NULL && pCorr5 == NULL && pCorr6 == NULL && pCorr7 == NULL)) { /* se o numero de ciclos que a fila ainda vai realizar é maior que zero */
                         if (foiMorto == 1) {
                             kill(currentPid, SIGCONT);
@@ -335,14 +335,14 @@ void scheduler() {
                         
                     } else { /* se o numero de ciclos tiver se esgotado*/
                         if(rrCorr != NULL) {
-                            //printf("rrcorr: %d e curr: %d\n",rrCorr->pid,currentPid);
+                            ////printf("rrcorr: %d e curr: %d\n",rrCorr->pid,currentPid);
                             if(rrCorr->pid == currentPid) {
-                                //printf("entrou no igual\n");
+                                ////printf("entrou no igual\n");
                                 kill(rrCorr->pid, SIGSTOP); /* para o processo round robin rodando */
                                 trocaTaExec(filaRoundRobin, 0); /* faz com que a fila de round robin fique inativa */
                                 trocaNumCiclos(filaRoundRobin,10); /* reinicializa o numero de ciclos */
                             } else {
-                                //printf("entrou no diferente\n");
+                                ////printf("entrou no diferente\n");
                                 kill(currentPid,SIGSTOP);
                                 kill(rrCorr->pid,SIGCONT);
                                 trocaNumCiclos(filaRoundRobin,9);
@@ -362,7 +362,9 @@ void scheduler() {
 Priority *p23;
 
 void catchAlarm(int signal) {
-    printf("entrei aqui %f e %d\n",count,currentPid);
+    FILE *entrada = fopen("entrada.txt","rw");
+    FILE *saida = fopen("saida.txt","rw");
+    fprintf(saida,"entrei aqui %f e %d\n",count,currentPid);
     scheduler();
 	if(count == 59.5) {
 		count = 0.5;
@@ -439,7 +441,7 @@ void criaPriority(char *execName,int priority) {
         case 5:
             FIL_InserirNaFila(filaPrioridade5, (void *)p1);
             if(filaEmExecucao > 5 || filaEmExecucao == 0) {
-                printf("entrou certo 5\n");
+                //printf("entrou certo 5\n");
                 trocaTaExec(filas[filaEmExecucao],0);
                 trocaTaExec(filaPrioridade5,1);
                 filaEmExecucao = 5;
@@ -448,7 +450,7 @@ void criaPriority(char *execName,int priority) {
         case 6:
             FIL_InserirNaFila(filaPrioridade6, (void *)p1);
             if(filaEmExecucao > 6 || filaEmExecucao == 0) {
-                printf("entrou certo 6\n");
+                //printf("entrou certo 6\n");
                 trocaTaExec(filas[filaEmExecucao],0);
                 trocaTaExec(filaPrioridade6,1);
                 filaEmExecucao = 6;
@@ -457,7 +459,7 @@ void criaPriority(char *execName,int priority) {
         case 7:
             FIL_InserirNaFila(filaPrioridade7, (void *)p1);
             if(filaEmExecucao == 7 || filaEmExecucao == 0) {
-                printf("entrou certo 7\n");
+                //printf("entrou certo 7\n");
                 trocaTaExec(filas[filaEmExecucao],0);
                 trocaTaExec(filaPrioridade7,1);
                 filaEmExecucao = 7;
@@ -559,12 +561,12 @@ int main() {
             read(fifo,tamanhoChar,2);
             tamanhoChar[2] = 0;
             tamanhoInt = atoi(tamanhoChar);
-            //printf("tipo: %c\n",tipo);
-            //printf("tamanho: %d\n",tamanhoInt);
+            ////printf("tipo: %c\n",tipo);
+            ////printf("tamanho: %d\n",tamanhoInt);
             switch (tipo) {
                 case 'r': /* se for round robin */
                     read(fifo,execPriority,tamanhoInt + 3);
-                    //printf("exec: %s\n",execPriority);
+                    ////printf("exec: %s\n",execPriority);
                     *valorShm = 0;
                     criaRoundRobin(execPriority);
                                         break;
@@ -588,8 +590,8 @@ int main() {
                     read(fifo,execPriority,tamanhoInt + 2);
                     read(fifo,&priority,2);
                     priorityI = atoi(&priority);
-                    //printf("priority: %c\n",priority);
-                    //printf("exec pri: %s\n",execPriority);
+                    ////printf("priority: %c\n",priority);
+                    ////printf("exec pri: %s\n",execPriority);
                     *valorShm = 0;
                     criaPriority(execPriority,priorityI);
                     break;
