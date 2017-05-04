@@ -11,8 +11,7 @@ int main() {
 	FILE *saida = fopen("saida.txt", "a");
 
 	while(1) {
-		char prog1[] = "prog1\n";
-		fprintf(saida, prog1);
+		fprintf(saida, "prog1\n");
     	usleep(500000);
 
     }
