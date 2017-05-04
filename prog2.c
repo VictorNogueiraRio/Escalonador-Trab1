@@ -4,12 +4,18 @@
 
 int main() {
 
-	FILE *entrada = fopen("entrada.txt", "r");
-	FILE *saida = fopen("/Users/mlfs95/Documents/PUC/SistemasDeComputação/Trab1/Escalonador-Trab1/saida.txt", "a");
+	char prog2[] = "prog2\n";
 
-    while(1) {
+	FILE *entrada;
+	FILE *saida;
 
-        fprintf(saida, "prog2\n");
+	while(1) {
+
+		entrada = fopen("entrada.txt", "r");
+		saida = fopen("saida.txt", "a");
+        fprintf(saida, "%s", prog2);
+		fclose(entrada);
+		fclose(saida);
         usleep(500000);
 	}
 }
