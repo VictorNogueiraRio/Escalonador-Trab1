@@ -228,7 +228,7 @@ LIS_tpCondRet LIS_ExcluirNoCorrente(LIS_tppLista lista) {
     {
         lista->pFimLista = pElem->pAnt ;
     } /* if */
-    printf("to aqui\n");
+    //printf("to aqui\n");
     LiberarElemento( lista , pElem ) ;
     
     return LIS_CondRetOK;

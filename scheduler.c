@@ -125,7 +125,7 @@ void queueHandler(int *currentPidPar, Fila **fila, int *foiMortoPar, Priority **
                     kill(*currentPidPar,SIGSTOP);
                 }
                 kill((*corr)->pid, SIGSTOP);
-                (*corr)->numCiclos = (*corr)->priority; /* coloca o numero de ciclos que ele executa */
+                (*corr)->numCiclos = 8 - (*corr)->priority; /* coloca o numero de ciclos que ele executa */
                 FIL_InserirNaFila(*fila, (*corr)); /* o coloca no fim da fila */
                 FIL_ObterValor(*fila,(void **)&corrTemp); /* pega novo processo da fila */
                 (*corr) = corrTemp;
@@ -362,11 +362,15 @@ void scheduler() {
 Priority *p23;
 
 void catchAlarm(int signal) {
-    FILE *entrada = fopen("entrada.txt","rw");
-    FILE *saida = fopen("saida.txt","rw");
-    fprintf(saida,"entrei aqui %f e %d\n",count,currentPid);
-	fclose(entrada);
-	fclose(saida);
+    char oq[30];
+    char echo[33] = {'e','c','h','o',32,'s','e','c',':',32,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    char novo [14]= {32,'>','>',32,'s','a','i','d','a','.','t','x','t',0};
+    sprintf(oq,"%f",count);
+    oq[4] = '\0';
+        strcat(echo,oq);
+    strcat(echo,novo);
+    printf("%s\n",echo);
+    system(echo);
     scheduler();
 	if(count == 59.5) {
 		count = 0.5;
